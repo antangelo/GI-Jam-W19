@@ -13,6 +13,8 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import io.github.antangelo.event.EventBus;
+import io.github.antangelo.event.listener.CollisionListener;
+import io.github.antangelo.event.listener.ControllerListener;
 
 public class GIPlatformer extends ApplicationAdapter
 {

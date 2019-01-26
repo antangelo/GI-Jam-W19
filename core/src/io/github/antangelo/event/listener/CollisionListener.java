@@ -1,4 +1,4 @@
-package io.github.antangelo;
+package io.github.antangelo.event.listener;
 
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
@@ -17,7 +17,6 @@ public class CollisionListener implements ContactListener
         this.eventBus = bus;
     }
 
-    //TODO: Cancelling collisions using the post system
     @Override
     public void beginContact(Contact contact)
     {
@@ -33,7 +32,8 @@ public class CollisionListener implements ContactListener
     @Override
     public void preSolve(Contact contact, Manifold manifold)
     {
-        eventBus.post(new CollisionEvent(CollisionEventType.PRE_SOLVE, contact).setManifold(manifold));
+        // Only in pre-solve does setEnabled cancel the collision, so no sense in having it anywhere else.
+        contact.setEnabled(eventBus.post(new CollisionEvent(CollisionEventType.PRE_SOLVE, contact).setManifold(manifold)));
     }
 
     @Override

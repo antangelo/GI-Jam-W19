@@ -1,4 +1,4 @@
-package io.github.antangelo;
+package io.github.antangelo.event.listener;
 
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.ControllerAdapter;
