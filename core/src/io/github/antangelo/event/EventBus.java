@@ -23,14 +23,19 @@ public class EventBus
         }
     }
 
-    public void post(Event event)
+    public boolean post(Event event)
     {
-        if (!listeners.containsKey(event.getClass())) return;
+        // We don't want to cancel the event if there are no handlers.
+        if (!listeners.containsKey(event.getClass())) return true;
+        boolean execute = true;
 
         for (IEventListener listener : listeners.get(event.getClass()))
         {
-            // TODO: Implement event cancelling
-            listener.post(event);
+            // If the listener posts false, then execute will be false.
+            // If execute is false and the listener posts true, execute will still be false.
+            execute = listener.post(event) && execute;
         }
+
+        return execute;
     }
 }

@@ -17,12 +17,17 @@ public class SpriteBody extends Sprite
 
     public SpriteBody(Texture texture, World world, Vector2 position)
     {
+        this(BodyDef.BodyType.DynamicBody, texture, world, position);
+    }
+
+    public SpriteBody(BodyDef.BodyType bodyType, Texture texture, World world, Vector2 position)
+    {
         super(texture);
 
         this.setPosition(position);
 
         BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.DynamicBody;
+        bodyDef.type = bodyType;
         bodyDef.position.set((this.getX() + this.getWidth() / 2) / GIPlatformer.PIXEL_TO_METER,
                 (this.getY() + this.getHeight() / 2) / GIPlatformer.PIXEL_TO_METER);
 

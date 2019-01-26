@@ -2,15 +2,16 @@ package io.github.antangelo;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.controllers.Controller;
-import com.badlogic.gdx.controllers.ControllerAdapter;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.World;
 import io.github.antangelo.event.EventBus;
 
 public class GIPlatformer extends ApplicationAdapter
@@ -34,8 +35,9 @@ public class GIPlatformer extends ApplicationAdapter
         img = new Texture("badlogic.jpg");
         world = new World(GRAVITY, true);
         eventBus = new EventBus();
+        player = new Player(world, new Texture("char1.png"));
 
-        player = new Player(world, img);
+        Controllers.addListener(new ControllerListener(eventBus));
         world.setContactListener(new CollisionListener(eventBus));
 
         this.groundSprite = new Sprite(img);
@@ -52,57 +54,7 @@ public class GIPlatformer extends ApplicationAdapter
         polygonShape.setAsBox(groundSprite.getWidth() / 2f / GIPlatformer.PIXEL_TO_METER,
                 groundSprite.getHeight() / 2f / GIPlatformer.PIXEL_TO_METER);
 
-        Fixture fixture = groundBody.createFixture(polygonShape, 1);
-
-        ControllerAdapter controllerAdapter = new ControllerAdapter()
-        {
-            //TODO: Make this an event
-            @Override
-            public boolean buttonDown(Controller controller, int buttonId)
-            {
-                switch (buttonId)
-                {
-                    case 1:
-                        player.actionDown(Player.JUMP_ACTION);
-                        break;
-                }
-
-                return true;
-            }
-
-            @Override
-            public boolean buttonUp(Controller controller, int buttonId)
-            {
-                switch (buttonId)
-                {
-                    case 1:
-                        player.actionUp(Player.JUMP_ACTION);
-                        break;
-                }
-
-                return true;
-            }
-
-            @Override
-            public boolean axisMoved(Controller controller, int axisId, float value)
-            {
-                //TODO: Controller movement
-                if (axisId == 0 && Math.abs(value) > 0.2)
-                {
-                    //Vector2 initialVelocity = sprite.getBody().getLinearVelocity();
-                    //sprite.getBody().setLinearVelocity(initialVelocity.x + 0.1f * value, initialVelocity.y);
-                }
-                else if (axisId == 1 && Math.abs(value) > 0.2)
-                {
-                    //Vector2 initialVelocity = sprite.getBody().getLinearVelocity();
-                    //sprite.getBody().setLinearVelocity(initialVelocity.x, initialVelocity.y - 0.1f * value);
-                }
-
-                return true;
-            }
-        };
-
-        Controllers.addListener(controllerAdapter);
+        groundBody.createFixture(polygonShape, 1);
     }
 
     @Override
@@ -114,8 +66,9 @@ public class GIPlatformer extends ApplicationAdapter
         groundSprite.setPosition(groundBody.getPosition().x * PIXEL_TO_METER - groundSprite.getWidth() / 2,
                 groundBody.getPosition().y * PIXEL_TO_METER - groundSprite.getHeight() / 2);
 
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
         batch.begin();
         batch.draw(player.getSprite(), player.getSprite().getX(), player.getSprite().getY());
         batch.draw(groundSprite, groundSprite.getX(), groundSprite.getY());

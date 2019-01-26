@@ -17,6 +17,7 @@ public class CollisionListener implements ContactListener
         this.eventBus = bus;
     }
 
+    //TODO: Cancelling collisions using the post system
     @Override
     public void beginContact(Contact contact)
     {

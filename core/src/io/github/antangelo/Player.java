@@ -4,10 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
-import io.github.antangelo.event.CollisionEvent;
-import io.github.antangelo.event.Event;
-import io.github.antangelo.event.EventBus;
-import io.github.antangelo.event.IEventListener;
+import io.github.antangelo.event.*;
 
 public class Player implements IEventListener
 {
@@ -15,13 +12,14 @@ public class Player implements IEventListener
     private int jumpingFrames = -1, jumpCounter = 0;
     private boolean standing = true;
 
-    public static final int JUMP_ACTION = 0;
+    private static final int JUMP_ACTION = 1;
 
     public Player(World world, Texture texture)
     {
         spriteBody = new SpriteBody(texture, world,
                 new Vector2(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f));
         EventBus.subscribe(CollisionEvent.class, this);
+        EventBus.subscribe(ControllerEvent.class, this);
     }
 
     public SpriteBody getSprite()
@@ -45,7 +43,7 @@ public class Player implements IEventListener
         spriteBody.update();
     }
 
-    public void axisDown(int axis, float value)
+    public void axisChanged(int axis, float value)
     {
 
     }
@@ -76,7 +74,6 @@ public class Player implements IEventListener
 
     boolean canJump()
     {
-        //System.out.println(jumpingFrames);
         return jumpCounter < 2 && standing;
     }
 
@@ -90,6 +87,23 @@ public class Player implements IEventListener
                     && collisionEvent.involves(spriteBody.getBody()))
             {
                 jumpCounter = 0;
+            }
+        }
+        else if (event instanceof ControllerEvent)
+        {
+            ControllerEvent controllerEvent = (ControllerEvent) event;
+
+            switch (controllerEvent.type)
+            {
+                case BUTTON_DOWN:
+                    this.actionDown(controllerEvent.identifier);
+                    break;
+                case BUTTON_UP:
+                    this.actionUp(controllerEvent.identifier);
+                    break;
+                case AXIS:
+                    this.axisChanged(controllerEvent.identifier, controllerEvent.value);
+                    break;
             }
         }
 
