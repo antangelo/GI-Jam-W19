@@ -15,19 +15,23 @@ public class SpriteBody extends Sprite
 
     }
 
-    public SpriteBody(Texture texture, World world)
+    public SpriteBody(Texture texture, World world, Vector2 position)
     {
         super(texture);
 
+        this.setPosition(position);
+
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(this.getX(), this.getY());
+        bodyDef.position.set((this.getX() + this.getWidth() / 2) / GIPlatformer.PIXEL_TO_METER,
+                (this.getY() + this.getHeight() / 2) / GIPlatformer.PIXEL_TO_METER);
 
         body = world.createBody(bodyDef);
 
         // Assuming the sprite is a box, will be solved in the future with SpriteProps ideally
         PolygonShape polygonShape = new PolygonShape();
-        polygonShape.setAsBox(this.getWidth() / 2f, this.getHeight() / 2f);
+        polygonShape.setAsBox(this.getWidth() / 2f / GIPlatformer.PIXEL_TO_METER,
+                this.getHeight() / 2f / GIPlatformer.PIXEL_TO_METER);
 
         Fixture fixture = body.createFixture(polygonShape, 1);
         polygonShape.dispose();
@@ -35,12 +39,20 @@ public class SpriteBody extends Sprite
 
     public void update()
     {
-        this.setPosition(this.body.getPosition().x, this.body.getPosition().y);
+        this.setPosition(this.body.getPosition().x * GIPlatformer.PIXEL_TO_METER - this.getWidth() / 2,
+                this.body.getPosition().y * GIPlatformer.PIXEL_TO_METER - this.getHeight() / 2);
+
+        this.setRotation((float) Math.toDegrees(body.getAngle()));
     }
 
     public Body getBody()
     {
         return body;
+    }
+
+    public void setPosition(Vector2 position)
+    {
+        this.setPosition(position.x, position.y);
     }
 
     public void setRealPosition(Vector2 position)
