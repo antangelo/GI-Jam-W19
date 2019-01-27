@@ -20,9 +20,14 @@ public class Player implements IEventListener
     {
         idleTexture = texture;
         spriteBody = new SpriteBody(texture, world,
-                new Vector2(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f));
+                new Vector2(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f - 230));
         EventBus.subscribe(CollisionEvent.class, this);
         EventBus.subscribe(ControllerEvent.class, this);
+    }
+
+    public boolean isDamaging()
+    {
+        return slammingFrames != -1 || bashingFrames != -1;
     }
 
     public void loadPlayerTextures()
@@ -172,15 +177,16 @@ public class Player implements IEventListener
         spriteBody.update();
     }
 
-    public void dispose()
+    public void dispose(World world)
     {
+        this.getSprite().getBody().setActive(false);
         this.idleTexture.dispose();
         this.disposeTextures();
     }
 
     private void axisChanged(int axis, float value)
     {
-        if (!canMove || Math.abs(value) < 0.2) return;
+        if (!canMove || GIPlatformer.getInstance().victory || Math.abs(value) < 0.2) return;
 
         switch (axis)
         {
@@ -195,7 +201,18 @@ public class Player implements IEventListener
                 break;
             case 3: // Up and down on the right stick
                 break;
-            // cases 4 and 5 remain, which are the L2 and R2 triggers (not respectively)
+            /*case 4:
+                if (value < 0.2 || dashingFrames != -1) break;
+                spriteBody.getBody().applyLinearImpulse(new Vector2(-0.5f * value * spriteBody.getBody().getMass(), 0),
+                        spriteBody.getBody().getWorldCenter(), true);
+                //dashingFrames = 0;
+                break;
+            case 5:
+                if(value < 0.2 || dashingFrames != -1) break;
+                spriteBody.getBody().applyLinearImpulse(new Vector2(0.5f * value * spriteBody.getBody().getMass(), 0),
+                        spriteBody.getBody().getWorldCenter(), true);
+                //dashingFrames = 0;
+                break;*/
         }
     }
 
@@ -210,34 +227,41 @@ public class Player implements IEventListener
                 jumpingFrames = 0;
                 break;
             case SLAM_ACTION:
-                if (standing || bashingFrames != -1) break;
+                if (standing || bashingFrames != -1 || slammingFrames != -1 || GIPlatformer.getInstance().victory)
+                {
+                    break;
+                }
                 slammingFrames = 0;
-                //this.spriteBody.setTexture(this.slamTextures[5]);
                 break;
             case UPPERCUT_ACTION:
-                if (!standing) break;
+                if (!standing || GIPlatformer.getInstance().victory) break;
                 bashingFrames = 0;
                 canMove = false;
                 jumpCounter = 1; // Leave one jump available when bashing
                 spriteBody.getBody().applyLinearImpulse(new Vector2(0, 2.5f),
                         spriteBody.getBody().getWorldCenter(), true);
                 break;
+            case 0:
+                if (GIPlatformer.getInstance().victory)
+                {
+                    GIPlatformer.getInstance().victory = false;
+                    GIPlatformer.getInstance().shouldKillPlayer = true;
+                }
+                break;
         }
     }
 
     private void actionUp(int actionType)
     {
-        switch (actionType)
+        if (actionType == JUMP_ACTION)
         {
-            case JUMP_ACTION:
-                jumpingFrames = -1;
-                break;
+            jumpingFrames = -1;
         }
     }
 
     private boolean canJump()
     {
-        return jumpCounter <= 1 && slammingFrames == -1 && bashingFrames == -1;
+        return jumpCounter <= 1 && slammingFrames == -1 && bashingFrames == -1 && !GIPlatformer.getInstance().victory;
     }
 
     @Override
@@ -249,6 +273,11 @@ public class Player implements IEventListener
             if (collisionEvent.collisionEventType == CollisionEvent.CollisionEventType.BEGIN_CONTACT
                     && collisionEvent.involves(spriteBody.getBody()))
             {
+                if (collisionEvent.involves(GIPlatformer.getInstance().house.getBody()))
+                {
+                    GIPlatformer.getInstance().victory = true;
+                }
+
                 jumpCounter = 0;
                 standing = true;
 
@@ -279,9 +308,6 @@ public class Player implements IEventListener
                 case BUTTON_UP:
                     this.actionUp(controllerEvent.identifier);
                     break;
-                /*case AXIS: This is commented out because the event based changing system isn't as effective as polling each frame
-                    this.axisChanged(controllerEvent.identifier, controllerEvent.value);
-                    break;*/
                 case AXIS_POLLING:
                     this.axisChanged(controllerEvent.identifier, controllerEvent.value);
                     break;

@@ -1,6 +1,7 @@
 package io.github.antangelo;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
@@ -8,12 +9,7 @@ import com.badlogic.gdx.physics.box2d.*;
 public class SpriteBody extends Sprite
 {
     private Body body;
-
-    //TODO: Implement SpriteProps for more general sprites
-    public static class SpriteProps
-    {
-
-    }
+    private Texture texture;
 
     public SpriteBody(Texture texture, World world, Vector2 position)
     {
@@ -25,6 +21,7 @@ public class SpriteBody extends Sprite
         super(texture);
 
         this.setPosition(position);
+        this.texture = texture;
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = bodyType;
@@ -55,6 +52,12 @@ public class SpriteBody extends Sprite
         return body;
     }
 
+    public void updateAndDraw(Batch batch)
+    {
+        this.update();
+        batch.draw(this, this.getX(), this.getY());
+    }
+
     public void setPosition(Vector2 position)
     {
         this.setPosition(position.x, position.y);
@@ -69,5 +72,10 @@ public class SpriteBody extends Sprite
     {
         this.body.setTransform(x, y, body.getAngle());
         this.setPosition(x, y);
+    }
+
+    public void dispose()
+    {
+        this.texture.dispose();
     }
 }
