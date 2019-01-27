@@ -2,6 +2,7 @@ package io.github.antangelo;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import io.github.antangelo.event.ControllerEvent;
 import io.github.antangelo.event.EventBus;
 import io.github.antangelo.event.listener.CollisionListener;
 import io.github.antangelo.event.listener.ControllerListener;
@@ -27,7 +29,7 @@ public class GIPlatformer extends ApplicationAdapter
 
     private EventBus eventBus;
 
-    private static final Vector2 GRAVITY = new Vector2(0, -9.8F);
+    private static final Vector2 GRAVITY = new Vector2(0, -5F);
     public static final float PIXEL_TO_METER = 100.0f;
 
     @Override
@@ -37,7 +39,9 @@ public class GIPlatformer extends ApplicationAdapter
         img = new Texture("badlogic.jpg");
         world = new World(GRAVITY, true);
         eventBus = new EventBus();
-        player = new Player(world, new Texture("char1.png"));
+        player = new Player(world, new Texture("char1-64x.png"));
+
+        player.loadPlayerTextures();
 
         Controllers.addListener(new ControllerListener(eventBus));
         world.setContactListener(new CollisionListener(eventBus));
@@ -64,6 +68,16 @@ public class GIPlatformer extends ApplicationAdapter
     {
         world.step(1 / 60f, 6, 2);
 
+        // Controller polling for axes on the right and left sticks.
+        for (Controller controller : Controllers.getControllers())
+        {
+            for (int i = 0; i <= 6; i++)
+            {
+                eventBus.post(new ControllerEvent(ControllerEvent.ControllerEventType.AXIS_POLLING, controller, i,
+                        controller.getAxis(i)));
+            }
+        }
+
         player.update();
         groundSprite.setPosition(groundBody.getPosition().x * PIXEL_TO_METER - groundSprite.getWidth() / 2,
                 groundBody.getPosition().y * PIXEL_TO_METER - groundSprite.getHeight() / 2);
@@ -83,5 +97,6 @@ public class GIPlatformer extends ApplicationAdapter
         batch.dispose();
         img.dispose();
         world.dispose();
+        player.dispose();
     }
 }

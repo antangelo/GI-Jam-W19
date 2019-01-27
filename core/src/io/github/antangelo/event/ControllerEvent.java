@@ -9,6 +9,7 @@ public class ControllerEvent extends Event
         BUTTON_UP,
         BUTTON_DOWN,
         AXIS,
+        AXIS_POLLING
     }
 
     public ControllerEventType type;
